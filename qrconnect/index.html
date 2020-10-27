@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <!-- <script defer src="./sdk/secretsdk.js"></script> -->
+    <script src="./js/qrcode.min.js"></script>
+    <script src="../utils/utils.js"></script>
+    <script src="./js/index.js"></script>
+    <!-- <script src="https://cdn.bootcss.com/vConsole/3.3.2/vconsole.min.js"></script> -->
+    <title>Halo Scan Code Login</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="logo-wrap">
+        <div class="logo-context">
+          <img class="logo" src="../assets/images/authorization/logo-2.png" />
+          <span> 海螺扫码登陆</span>
+        </div>
+        <div id="qrcode-login-wrapper" class="qrcode-wrapper hidden">
+          <div class="qrcode" id="qrcode-login"></div>
+          <p class="qrcode-scan-text hidden">请用海螺APP扫码登录</p>
+        </div>
+        <div class="qrcode-expired-wrapper hidden">
+          <p>当前二维码已过期</p>
+          <button class="refresh-qrcode">刷新</button>
+        </div>
+        <div class="qrcode-status-wrapper qrcode-success-wrapper hidden">
+          <span class="qrcode-success-icon"
+            ><img src="./images/success.png" alt=""
+          /></span>
+          <span class="qrcode-success-scan">
+            <span>扫描成功</span>
+            <br />
+            <span>请在海螺APP中点击确认即可登录</span>
+          </span>
+        </div>
+        <div class="qrcode-status-wrapper qrcode-error-wrapper hidden">
+          <span class="qrcode-error-icon"
+            ><img src="./images/error.png" alt=""
+          /></span>
+          <span class="qrcode-error-scan">
+            <span>您已取消此次登录</span>
+            <br />
+            <span>你可再次扫描登录，或关闭窗口</span>
+          </span>
+        </div>
+        <div class="loading-wrap">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

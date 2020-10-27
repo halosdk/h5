@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="./css/index.css" />
+    <!-- <script defer src="./sdk/secretsdk.js"></script> -->
+    <script src="./js/qrcode.min.js"></script>
+    <script src="../utils/utils.js"></script>
+    <script src="./js/index.js"></script>
+    <!-- <script src="https://cdn.bootcss.com/vConsole/3.3.2/vconsole.min.js"></script> -->
+    <title>Halo Pay Demo</title>
+  </head>
+
+  <body>
+    <div class="container">
+      <div>
+        <div class="logo-wrap">
+          <img class="logo" src="../assets/images/authorization/logo.png" />
+          <div id="qrcode-pay-wrapper" class="qrcode-wrapper hidden">
+            <p class="name">请用海螺APP扫码支付</p>
+            <div class="qrcode" id="qrcode-pay"></div>
+            <button id="pay-compeleted-btn">完成支付</button>
+          </div>
+        </div>
+        <div class="loading-wrap">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div id="start-pay-btn-wrapper" class="start-wrapper">
+          <button class="start-btn" id="start-pay-btn">点击开始海螺支付</button>
+        </div>
+        <div class="status-wrapper">
+          <p class="status-successful hidden" id="pay-tips">支付成功</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

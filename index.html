@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0,user-scalable=no, viewport-fit=cover"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="format-detection" content="telephone=no" />
+    <script src="./sdk/halo.min.js" async></script>
+    <script src="./utils/utils.js" async></script>
+    <script src="./vconsole_min.js" async></script>
+    <link rel="icon" href="./favicon.ico" />
+    <link rel="icon shortcut" href="./favicon.ico" />
+    <link rel="stylesheet" href="./assets/css/halosdk.css" />
+    <title>Halo SDK</title>
+  </head>
+  <body>
+    <div class="logo-wrap">
+      <img class="logo" src="./assets/images/authorization/logo.png" alt />
+      <h3 class="name">海螺开放平台</h3>
+    </div>
+    <div class="user-wrap">
+      <div class="user-info">
+        <div class="logo">
+          <img src="./assets/images/authorization/logo.png" alt />
+        </div>
+        <h3 class="user-name">彭于晏</h3>
+        <h6 class="user-telephone">13059875558</h6>
+      </div>
+      <!-- 
+      <div class="order-wrap">
+        订单ID:<br />
+        <input type="text" name="orderId" placeholder="orderId" />
+        <br />
+        商户订单号:<br />
+        <input type="text" name="orderNo" placeholder="oderNo" />
+      </div> -->
+
+      <div class="pay-wrap">
+        <button class="recharge-btn">用户充值</button>
+        <button class="withdraw-btn">用户提现</button>
+        <button class="repay-btn">用户支付</button>
+      </div>
+    </div>
+    <div class="loading-wrap">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="auth-wrap">
+      <button class="authorization-box">点击授权</button>
+    </div>
+    <div class="status-wrap">
+      <div class="status-icon success">
+        <img src="./assets/images/authorization/success.png" alt />
+        <h3>充值成功</h3>
+      </div>
+      <div class="status-icon error">
+        <img src="./assets/images/authorization/error.png" alt />
+        <h3>充值失败</h3>
+      </div>
+      <div class="status-footer">
+        <img src="./assets/images/authorization/logo-2.png" alt />
+        <span>海螺开放平台</span>
+      </div>
+    </div>
+
+    <script>
+      // 获取页面dom对象
+      var loadingWrap = document.querySelector(".loading-wrap");
+      var logoWrap = document.querySelector(".logo-wrap");
+      var authWrap = document.querySelector(".auth-wrap");
+      var userWrap = document.querySelector(".user-wrap");
+      var statusWrap = document.querySelector(".status-wrap");
+      var statusIconError = document.querySelector(".status-icon.error");
+      var statusIconErrorText = document.querySelector(".status-icon.error h3");
+      var statusIconSuccess = document.querySelector(".status-icon.success");
+      var statusIconSuccessText = document.querySelector(
+        ".status-icon.success h3"
+      );
+
+      // 用戶操作按鈕
+      var authorizationButton = document.querySelector(".authorization-box"); // 授权
+      var rechargeButton = document.querySelector(".recharge-btn"); // 充值
+      var repayButton = document.querySelector(".repay-btn"); // 支付
+      var withdrawButton = document.querySelector(".withdraw-btn"); // 提现
+
+      window.onload = function () {
+        var vConsole = new VConsole();
+        var url = window.location.href;
+        if (
+          url.slice(7, 10) === "dev" ||
+          url.slice(7, 10) === "192" ||
+          url.slice(7, 10) === "127"
+        ) {
+          /* 开发线 */
+          var appId = "10000"; // 唯一标识 dev
+          var merchantId = "1294178599210422274"; // 商户ID dev
+          var baseUrl = "http://192.168.10.203:8889"; // dev
+          var coinName = "CLC"; // 	币种名称 dev
+          var secretKey = "WkYe28Hlu0N1n6YRx/pWww==";
+        } else if (url.slice(7, 11) === "test") {
+          /* 测试线 */
+          var appId = "10000"; // 唯一标识 test
+          var merchantId = "1300742540970475522"; // 商户ID test
+          var baseUrl = "http://192.168.10.213:8889"; // master test
+          var coinName = "CLC"; // 	币种名称 test
+          var secretKey = "KDuTsWeAikOFbO+P70CE7A=="; // 下单签名秘钥
+        } else {
+          /* 正式线 */
+          var appId = "10000"; // 唯一标识 master
+          var merchantId = "1306062901528584194"; // 商户ID master
+          var baseUrl = "https://demo-api.hailuo.im"; // master
+          var coinName = "CLC"; // 	币种名称 master
+          var secretKey = "We7/KfVPtJdGnx/jqZzv2A=="; // 下单签名秘钥
+        }
+
+        /* 接口入参 */
+        var responseType = "code"; // 返回类型
+        var scope = "userinfo"; // 应用授权作用域，base （不弹出授权页面，直接跳转，只能获取用户openId），userinfo （弹出授权页面，可通过openId拿到昵称、性别、所在地。只要用户授权，也能获取其信息 ）
+        var amount = "2"; // 提币金额
+        var outTradeNo = uuid(); // 商户订单号
+        var notify_url = location.origin; // 业务回调地址
+        var openId = ""; // 同一主体下用户唯一标识
+        var accessToken = ""; // accessToken
+        var refreshToken = ""; // 用户刷新accessToken
+        var merchant = "halo"; // 商户名称
+        var remark = "halo"; // 订单备注，可选
+        if (url.slice(7, 10) === "192" || url.slice(7, 10) === "127") {
+          notify_url = location.origin;
+        } else {
+          notify_url = location.origin + "/demo";
+        }
+
+        // 取得secret sdk实例
+        var haloAuthorization = window.getHaloSdk({
+          appId: appId
+        });
+
+        // 获取URL query
+        var queryObj = getQuery();
+        // 授权回调逻辑
+        if (queryObj.code) {
+          // 获取AccessToken
+          getAccessToken();
+        } else if (queryObj.merchantId) {
+          // 充值回调逻辑
+          logoWrap.style.display = "none";
+          authWrap.style.display = "none";
+          userWrap.style.display = "none";
+          statusWrap.style.display = "block";
+          statusIconError.style.display = "none";
+        } else {
+          // 初始页面
+          userWrap.style.display = "none";
+          statusWrap.style.display = "none";
+          authWrap.style.display = "block";
+        }
+
+        // 唤起app授权逻辑
+        authorizationButton.onclick = startAuthorizationFun;
+
+        function startAuthorizationFun() {
+          if (!appId) {
+            alert("请填写appId");
+            return;
+          }
+          // 授权
+          var data = {
+            appId,
+            responseType,
+            scope
+          };
+          haloAuthorization.authorization(data);
+          haloAuthorization.destroy();
+        }
+
+        // 自定义导航栏
+        // function startAuthorizationFuns() {
+        //   // 授权
+        //   var data = {
+        //     appId,
+        //     responseType,
+        //     scope
+        //   };
+        //   haloAuthorization.setNavigation({});
+        //   haloAuthorization.destroy();
+        // }
+        // startAuthorizationFuns();
+
+        // 用户充值
+        rechargeButton.onclick = function () {
+          // 先判断用户是否授权登录
+          if (!accessToken) {
+            location.href = notify_url;
+          } else {
+            startRechargeFun();
+          }
+        };
+
+        function startRechargeFun() {
+          data = {
+            merchantId: merchantId,
+            appId: appId,
+            openId: openId,
+            coinName: coinName,
+            amount: amount,
+            outTradeNo: uuid(),
+            remark: remark,
+            accessToken: accessToken,
+            notify_url: notify_url,
+            merchant: merchant
+          };
+          if (!data.appId) {
+            alert("appId 不存在");
+            return;
+          }
+          // 通知状态回调URL
+          data.notify_url += "?merchantId=" + data.merchantId;
+          console.log("Recharge data", data);
+          haloAuthorization.recharge(data);
+        }
+
+        // 用户支付
+        repayButton.onclick = function () {
+          // 先判断用户是否授权登录
+          if (!accessToken) {
+            // 未授权要先授权登录
+            location.href = notify_url;
+          } else {
+            startRepayFun();
+          }
+        };
+
+        function startRepayFun() {
+          orderPlace(successRepayFun, failRepayFun);
+
+          // 下单成功
+          function successRepayFun(res) {
+            loadingWrap.style.display = "none";
+            loadingWrap.classList.remove("withdraw");
+            var result = JSON.parse(res);
+            var data = result.data;
+            if (!result.success) {
+              alert(result.msg);
+              return;
+            }
+            var payData = {
+              orderId: data.id || "1296324861221203970",
+              orderNo: data.orderNo || "M002",
+              scanType: "6",
+              payAmount: 2,
+              payCoinName: "CNY",
+              id: "1286550423067537410",
+              status: 1,
+              merchantName: "测试支付"
+            };
+            console.log("repay data", payData);
+            haloAuthorization.repay(payData);
+          }
+
+          // 下单失败
+          function failRepayFun(err) {
+            loadingWrap.style.display = "none";
+            loadingWrap.classList.remove("withdraw");
+
+            console.log("pay err", err);
+            alert("下单失败");
+          }
+        }
+
+        // 支付-在线下单demo
+        function orderPlace(successCallback, failCallback) {
+          loadingWrap.style.display = "block";
+          loadingWrap.classList.add("withdraw");
+
+          var data = {
+            amount: amount,
+            appKey: appId,
+            attach: "测试商户下单", // 附加数据
+            coinName: coinName,
+            expireTime: 7200, // 交易结束时间 单位分钟
+            orderNo: Date.now(), // 商户系统内部订单号
+            payScenes: 3, // 支付场景 1：APP 2: H5 3:NATIVE
+            productDesc: "商品说明", // 商品说明
+            thirdPartyRemarks: "测试支付" + amount + coinName, // 支付备注
+            thirdPartyTimestamp: Date.now(),
+            secretKey: secretKey
+          };
+          // 获取签名 => 下单
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/order/sign",
+            data: data,
+            success: function (res) {
+              var result = JSON.parse(res);
+              if (!result.success) {
+                alert(result.msg);
+                return;
+              }
+              httpAjax({
+                type: "POST",
+                url: baseUrl + "/sdk/order/place",
+                data: result.data,
+                success: function (res) {
+                  successCallback && successCallback(res);
+                },
+                fail: function (err) {
+                  failCallback && failCallback(err);
+                }
+              });
+            },
+            fail: function (err) {
+              loadingWrap.style.display = "none";
+              loadingWrap.classList.remove("withdraw");
+              alert("签名失败");
+            }
+          });
+        }
+
+        // 用户提币
+        withdrawButton.onclick = getWithdraw;
+
+        // Withdraw
+        function getWithdraw() {
+          loadingWrap.style.display = "block";
+          loadingWrap.classList.add("withdraw");
+          data = {
+            merchantId: merchantId,
+            appId: appId,
+            openId: openId,
+            coinName: coinName,
+            amount: amount,
+            outTradeNo: uuid(),
+            remark: remark,
+            accessToken: accessToken,
+            notify_url: notify_url
+          };
+          if (!data.appId) {
+            alert("appId 不存在");
+            return;
+          }
+          ajaxWithdraw(data, withdrawSuccess, withdrawFail);
+
+          function withdrawSuccess(res) {
+            loadingWrap.style.display = "none";
+            loadingWrap.classList.remove("withdraw");
+            res = JSON.parse(res);
+            if (res.success) {
+              data = res.data;
+              // data = JSON.parse(data);
+              userWrap.style.display = "none";
+              statusWrap.style.display = "block";
+              statusIconError.style.display = "none";
+              statusIconSuccessText.innerText = "提现成功";
+              console.log("Withdraw res data:", data);
+            } else {
+              alert(res.msg);
+              console.log("Withdraw err", res.msg);
+            }
+          }
+
+          function withdrawFail(err) {
+            loadingWrap.style.display = "none";
+            loadingWrap.classList.remove("withdraw");
+            alert(err);
+            err = JSON.parse(err);
+            console.log("Withdraw err", err);
+          }
+        }
+
+        // 获取AccessToken
+        function getAccessToken() {
+          loadingWrap.style.display = "block";
+          var tokenData = {
+            appId: appId,
+            // secret: "2569c63e504541a3b2764f2976e5c8c3",
+            code: queryObj.code,
+            grantType: "authorizationCode"
+          };
+          if (!tokenData.appId) {
+            alert("appId不能为空");
+          }
+          ajaxGetAccessToken(tokenData, tokenSuccess, tokenFail);
+
+          function tokenSuccess(res) {
+            loadingWrap.style.display = "none";
+            res = JSON.parse(res);
+            if (res.success) {
+              data = res.data;
+              console.log("token", data);
+              // data = JSON.parse(data);
+              openId = data.openId;
+              accessToken = data.accessToken;
+              refreshToken = data.refreshToken;
+              appId = tokenData.appId;
+              alert("用户授权成功");
+              logoWrap.style.display = "none";
+              // 获取用户信息
+              getUserInfo();
+            } else {
+              authWrap.style.display = "block";
+              alert(res.msg);
+              console.log("token err", res.msg);
+            }
+          }
+
+          function tokenFail(err) {
+            authWrap.style.display = "block";
+            loadingWrap.style.display = "none";
+            alert(err);
+            err = JSON.parse(err);
+            console.log("token err", err, err);
+          }
+        }
+
+        // UserInfo
+        function getUserInfo() {
+          var userInfoData = {
+            accessToken,
+            openId: openId,
+            // 第三方后台接口需要的参数
+            appId: appId
+          };
+
+          ajaxGetUserInfo(userInfoData, userInfoSuccess, userInfoFail);
+
+          function userInfoSuccess(res) {
+            res = JSON.parse(res);
+            if (res.success) {
+              console.log("userInfoSuccess", res.data);
+              data = res.data;
+              // data = JSON.parse(data);
+              console.log(data);
+              userWrap.style.display = "block";
+              document
+                .querySelector(".logo img")
+                .setAttribute("src", data.avatarUrl);
+              document.querySelector(".user-name").innerText = data.nickName;
+              document.querySelector(".user-telephone").innerText =
+                data.telephone;
+            } else {
+              console.log("user", res.msg);
+              if (appId && refreshToken) {
+                getRefreshToken();
+              }
+            }
+          }
+
+          function userInfoFail(err) {
+            err = JSON.parse(err);
+            console.log("user", err);
+          }
+        }
+
+        // RefreshToken
+        function getRefreshToken() {
+          var refreshTokenData = {
+            appId: appId,
+            grantType: "refreshToken",
+            refreshToken: refreshToken
+          };
+          ajaxRefreshAccessToken(
+            refreshTokenData,
+            refreshTokenSuccess,
+            refreshTokenFail
+          );
+
+          function refreshTokenSuccess(res) {
+            res = JSON.parse(res);
+            if (res.success) {
+              data = res.data;
+              // data = JSON.parse(data);
+              accessToken = data.accessToken;
+              refreshToken = data.refreshToken;
+              openId = data.openId;
+              getUserInfo();
+            } else {
+              console.log("refreshToken err", res.msg);
+            }
+          }
+
+          function refreshTokenFail(err) {
+            console.log("refreshToken err", err);
+          }
+        }
+
+        // ajax
+        function ajaxGetUserInfo(data, success, fail) {
+          console.log("before GetUserInfo data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/oauth2/userinfo",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxGetAccessToken(data, success, fail) {
+          console.log("before GetAccessToken data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/oauth2/token",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxRefreshAccessToken(data, success, fail) {
+          console.log("before RefreshAccessToken data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/oauth2/token/refresh",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxWithdraw(data, success, fail) {
+          console.log("before Withdraw data:", data);
+          var header = [
+            {
+              name: "access-token",
+              value: data.accessToken || ""
+            }
+          ];
+          console.log(`header:${JSON.stringify(header)}`);
+          delete data.accessToken;
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/merchant/user/withdraw",
+            data: data,
+            success: success,
+            fail: fail
+            // header: header
+          });
+        }
+      };
+      // 支付成功的回调
+      function payStatus(data) {
+        console.log("支付回调", data);
+        logoWrap.style.display = "none";
+        authWrap.style.display = "none";
+        userWrap.style.display = "none";
+        statusWrap.style.display = "block";
+        if (data) {
+          statusIconError.style.display = "none";
+          statusIconSuccess.style.display = "block";
+          statusIconSuccessText.innerText = "支付成功";
+        } else {
+          statusIconError.style.display = "block";
+          statusIconSuccess.style.display = "none";
+          statusIconErrorText.innerText = "支付失败";
+        }
+      }
+    </script>
+  </body>
+</html>

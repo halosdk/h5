@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="./sdk/secretsdk.js"></script>
+    <script src="https://cdn.bootcss.com/vConsole/3.3.2/vconsole.min.js"></script>
+    <title>fincy sdk qrconnect</title>
+    <style>
+      html,
+      body {
+        font-size: 20px;
+        text-align: center;
+        background: #b1e2ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      button {
+        display: block;
+        line-height: 1;
+        white-space: nowrap;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #dcdfe6;
+        color: #606266;
+        -webkit-appearance: none;
+        text-align: center;
+        box-sizing: border-box;
+        outline: none;
+        margin: 0;
+        transition: 0.1s;
+        font-weight: 500;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        padding: 12px 30px;
+        margin: 20px auto;
+        font-size: 14px;
+        border-radius: 4px;
+        color: #fff;
+        background-color: #409eff;
+        border-color: #409eff;
+      }
+
+      .logo-wrap img {
+        display: inline-block;
+        width: 4rem;
+        height: 4rem;
+        margin-top: 30px;
+      }
+
+      .logo-wrap p {
+        font-size: 20px;
+        font-weight: 400;
+        color: #333;
+      }
+
+      .pay-wrap,
+      .auth-wrap,
+      .status-wrap {
+        display: none;
+        text-align: center;
+        margin-top: 40px;
+      }
+
+      .status-wrap p {
+        color: green;
+      }
+
+      .status-wrap a {
+        color: bule;
+      }
+
+      @-webkit-keyframes loadinf-wrap {
+        0% {
+          -webkit-transform: scale(1, 0.3);
+        }
+
+        100% {
+          -webkit-transform: scale(1, 1);
+        }
+      }
+
+      .loadinf-wrap {
+        display: none;
+        width: 100%;
+        height: 28px;
+      }
+
+      .loadinf-wrap div {
+        width: 2px;
+        margin-right: 3px;
+        height: 100%;
+        background: #333;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .loadinf-wrap div:nth-child(1) {
+        -webkit-animation: loadinf-wrap 0.5s -0.3s ease-in-out infinite alternate;
+      }
+
+      .loadinf-wrap div:nth-child(2) {
+        -webkit-animation: loadinf-wrap 0.5s -0.25s ease-in-out infinite alternate;
+      }
+
+      .loadinf-wrap div:nth-child(3) {
+        -webkit-animation: loadinf-wrap 0.5s -0.2s ease-in-out infinite alternate;
+      }
+
+      .loadinf-wrap div:nth-child(4) {
+        -webkit-animation: loadinf-wrap 0.5s -0.1s ease-in-out infinite alternate;
+      }
+
+      .loadinf-wrap div:nth-child(5) {
+        -webkit-animation: loadinf-wrap 0.5s 0s ease-in-out infinite alternate;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="logo-wrap">
+      <img class="logo" src="./logo.png" alt="" />
+      <p class="name">扫码登录</p>
+      <button class="getexit">退出</button>
+    </div>
+    <div class="loadinf-wrap">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="pay-wrap"></div>
+    <div class="auth-wrap">
+      <button class="authorization-boxbtn">fincy登录</button>
+    </div>
+    <div class="status-wrap">
+      <p class="res">
+        ok
+      </p>
+    </div>
+
+    <script>
+      window.onload = function () {
+        var vConsole = new VConsole();
+        var url = window.location.href;
+        if (
+          url.slice(7, 10) === "dev" ||
+          url.slice(7, 10) === "192" ||
+          url.slice(7, 10) === "127"
+        ) {
+          /* 开发线 */
+          var appId = "9ab02b08d8cd455bbc5c313e3c99cf1e"; // 唯一标识 master
+          var merchantId = "1123133415721897986"; // 商户ID master
+          var baseUrl = "http://dev-sdk-demo.lliao.net:8077"; // master
+          var coinName = "DC"; // 	币种名称 master
+          // var baseUrl    = "http://148.66.11.232:9000/demo";            // master
+          var redirectUri =
+            "http://local-secret-authorization-sdk.lliao.net/qrconnect";
+          // var redirectUri = "http://192.168.11.146:8080/qrconnect.html"
+          console.log(
+            "开发线",
+            "appId:",
+            appId,
+            "merchantId:",
+            merchantId,
+            "baseUrl:",
+            baseUrl,
+            "coinName:",
+            coinName
+          );
+        } else if (url.slice(7, 11) === "test") {
+          /* 测试线 */
+          var appId = "04e7e0425fff47af91ac6d3b4dc013a1"; // 唯一标识 master
+          var merchantId = "1237641456014950401"; // 商户ID master
+          var baseUrl = "http://148.66.11.232:9000"; // master https://testapi.secret.one/api/v1
+          var coinName = "DC"; // 	币种名称 master
+          // var baseUrl    = "http://148.66.11.232:9000/demo";            // master
+          var redirectUri =
+            "http://test-secret-authorization-sdk.lliao.net/qrconnect";
+          console.log(
+            "测试线",
+            "appId:",
+            appId,
+            "merchantId:",
+            merchantId,
+            "baseUrl:",
+            baseUrl,
+            "coinName:",
+            coinName
+          );
+        } else {
+          /* 正式线 */
+          var appId = "0826565f013946bcbd277dc791419f05"; // 唯一标识 master
+          var merchantId = "1139463050538885121"; // 商户ID master
+          var baseUrl = "https://test-sdk-demo.secret.one"; // master
+          var coinName = "DC"; // 	币种名称 master
+          // var baseUrl    = "http://148.66.11.232:9000/demo";            // master
+          var redirectUri = "http://demo.fincy.com/qrconnect";
+          console.log(
+            "正式线",
+            "appId:",
+            appId,
+            "merchantId:",
+            merchantId,
+            "baseUrl:",
+            baseUrl,
+            "coinName:",
+            coinName
+          );
+        }
+
+        /* 接口入参 */
+        var openId = ""; // 同一主体下用户唯一标识
+        var accessToken = ""; // accessToken
+        var refreshToken = ""; // 用户刷新accessToken
+
+        // 获取URL query
+        var queryObj = get_query();
+
+        // 授权回调逻辑
+        if (queryObj.code) {
+          // 获取AccessToken
+          console.log("code", queryObj.code);
+          getAccessToken();
+        } else {
+          // 初始页面
+          document.querySelector(".status-wrap").style.display = "none";
+          document.querySelector(".auth-wrap").style.display = "block";
+          document.querySelector(".getexit").style.display = "none";
+        }
+        // 二维码登录
+        document.querySelector(".authorization-boxbtn").onclick = fincylogin;
+
+        function fincylogin() {
+          var url = window.location.href;
+          if (
+            url.slice(7, 10) === "dev" ||
+            url.slice(7, 10) === "192" ||
+            url.slice(7, 10) === "127"
+          ) {
+            // console.log('http://local-fincy-open.lliao.net?appId='+appId+'&redirectUri='+redirectUri);
+            window.open(
+              "http://local-fincy-open.lliao.net?appId=" +
+                appId +
+                "&redirectUri=" +
+                redirectUri,
+              "_self"
+            );
+            // window.open('http://192.168.11.146:8081?appId='+appId+'&redirectUri='+redirectUri,'_self');
+          } else if (url.slice(7, 11) === "test") {
+            window.open(
+              "http://test-fincy-open.lliao.net?appId=" +
+                appId +
+                "&redirectUri=" +
+                redirectUri,
+              "_self"
+            );
+          } else {
+            window.open(
+              "http://open.fincy.com?appId=" +
+                appId +
+                "&redirectUri=" +
+                redirectUri,
+              "_self"
+            );
+          }
+        }
+
+        document.querySelector(".getexit").onclick = fincyexit;
+
+        function fincyexit() {
+          window.open(redirectUri, "_self");
+        }
+
+        // 获取AccessToken
+        function getAccessToken() {
+          document.querySelector(".loadinf-wrap").style.display = "block";
+          var tokenData = {
+            appId: appId,
+            // secret: "2569c63e504541a3b2764f2976e5c8c3",
+            code: queryObj.code,
+            grantType: "authorizationCode"
+          };
+          if (!tokenData.appId) {
+            alert("appId不能为空");
+          }
+          ajaxGetAccessToken(tokenData, tokenSuccess, tokenFail);
+
+          function tokenSuccess(res) {
+            document.querySelector(".loadinf-wrap").style.display = "none";
+            res = JSON.parse(res);
+            if (res.success) {
+              data = res.data;
+              console.log("token", data);
+              // data = JSON.parse(data);
+              openId = data.openId;
+              accessToken = data.accessToken;
+              refreshToken = data.refreshToken;
+              appId = tokenData.appId;
+              alert("用户授权成功");
+              document.querySelector(".auth-wrap").style.display = "none";
+              document.querySelector(".status-wrap").style.display = "none";
+              // 获取用户信息
+              getUserInfo();
+            } else {
+              alert(res.msg);
+              console.log("token err", res.msg);
+            }
+          }
+
+          function tokenFail(err) {
+            document.querySelector(".loadinf-wrap").style.display = "none";
+            alert(err);
+            err = JSON.parse(err);
+            console.log("token err", err);
+          }
+        }
+
+        // UserInfo
+        function getUserInfo() {
+          var userInfoData = {
+            accessToken,
+            openId: openId,
+            // 第三方后台接口需要的参数
+            appId: appId
+          };
+
+          ajaxGetUserInfo(userInfoData, userInfoSuccess, userInfoFail);
+
+          function userInfoSuccess(res) {
+            res = JSON.parse(res);
+            if (res.success) {
+              console.log("userInfoSuccess", res.data);
+              data = res.data;
+              // data = JSON.parse(data);
+              console.log(data);
+              document.querySelector(".getexit").style.display = "block";
+              document
+                .querySelector(".logo")
+                .setAttribute("src", data.userAvatarUrl);
+              document.querySelector(".logo").style["border-radius"] = "50%";
+              document.querySelector(".name").innerText = data.name;
+            } else {
+              console.log("user", res.msg);
+              if (appId && refreshToken) {
+                getRefreshToken();
+              }
+            }
+          }
+
+          function userInfoFail(err) {
+            err = JSON.parse(err);
+            document.querySelector(".infobox").innerHTML = `${
+              document.querySelector(".infobox").innerHTML
+            } </br> userinfo err :${err};`;
+            console.log("user", err);
+          }
+        }
+
+        // RefreshToken
+        function getRefreshToken() {
+          var refreshTokenData = {
+            appId: appId,
+            grantType: "refreshToken",
+            refreshToken: refreshToken
+          };
+          ajaxRefreshAccessToken(
+            refreshTokenData,
+            refreshTokenSuccess,
+            refreshTokenFail
+          );
+
+          function refreshTokenSuccess(res) {
+            res = JSON.parse(res);
+            if (res.success) {
+              data = res.data;
+              // data = JSON.parse(data);
+              accessToken = data.accessToken;
+              refreshToken = data.refreshToken;
+              openId = data.openId;
+              getUserInfo();
+            } else {
+              console.log("refreshToken err", res.msg);
+            }
+          }
+
+          function refreshTokenFail(err) {
+            console.log("refreshToken err", err);
+          }
+        }
+
+        // ajax
+        function ajaxGetUserInfo(data, success, fail) {
+          console.log("before GetUserInfo data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/userinfo",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxGetAccessToken(data, success, fail) {
+          console.log("before GetAccessToken data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/oauth2/token",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxRefreshAccessToken(data, success, fail) {
+          console.log("before RefreshAccessToken data:", data);
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/oauth2/token/refresh",
+            data: data,
+            success: success,
+            fail: fail
+          });
+        }
+
+        function ajaxWithdraw(data, success, fail) {
+          console.log("before Withdraw data:", data);
+          var header = [
+            {
+              name: "access-token",
+              value: data.accessToken || ""
+            }
+          ];
+          console.log(`header:${JSON.stringify(header)}`);
+          delete data.accessToken;
+
+          httpAjax({
+            type: "POST",
+            url: baseUrl + "/sdk/merchant/user/withdraw",
+            data: data,
+            success: success,
+            fail: fail
+            // header: header
+          });
+        }
+
+        // utils
+        function httpAjax(opt) {
+          opt = opt || {};
+          var type = opt.type || "GET";
+          type = type.toUpperCase() || "GET";
+          var url = opt.url || "";
+          var async = opt.async || true;
+          var data = opt.data || null;
+          var header = opt.header || [];
+          var success = opt.success || function () {};
+          var fail = opt.fail || function () {};
+          var xmlHttp = null;
+          if (XMLHttpRequest) {
+            xmlHttp = new XMLHttpRequest();
+          } else {
+            xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+          var params = [];
+          for (var key in data) {
+            params.push(key + "=" + data[key]);
+          }
+          var dataStr = params.join("&");
+          if (type === "POST") {
+            xmlHttp.open(type, url, async);
+            xmlHttp.setRequestHeader(
+              "Content-Type",
+              "application/json;charset=utf-8"
+            );
+            // xmlHttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded;charset=utf-8');
+            // xmlHttp.setRequestHeader('Content-Type', 'multipart/form-data;charset=utf-8');
+            for (var head of header) {
+              xmlHttp.setRequestHeader(head.name, head.value);
+            }
+            data = JSON.stringify(data);
+            xmlHttp.send(data);
+          } else {
+            url = url + (url.indexOf("?") > -1 ? "&" : "?") + dataStr;
+            xmlHttp.open(type, url, async);
+            for (var head of header) {
+              xmlHttp.setRequestHeader(head.name, head.value);
+            }
+            xmlHttp.send(null);
+          }
+          xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4) {
+              var status = xmlHttp.status;
+              if (status >= 200 && status < 300) {
+                success && success(xmlHttp.responseText);
+              } else {
+                fail && fail(status);
+              }
+            }
+          };
+        }
+
+        function get_query(str) {
+          // url转obj
+          if (!str) {
+            str = location.search.substring(1);
+          }
+          var query_scan = str
+            ? JSON.parse(
+                '{"' + str.replace(/&/g, '","').replace(/=/g, '":"') + '"}',
+                function (key, value) {
+                  return key === "" ? value : decodeURIComponent(value);
+                }
+              )
+            : {};
+          return query_scan;
+        }
+
+        /* 浏览器环境检测
+         * @return {object}    {isAndroid,isIphone,isWeixin}
+         */
+        function scanProduct() {
+          // js设备校验
+          var obj = {};
+          var ua = navigator.userAgent.toLowerCase();
+
+          obj.isAndroid = /(Android)/i.test(navigator.userAgent); //android终端
+          obj.isIphone = ua.indexOf("iphone") > -1 ? true : false; //ipone
+          obj.isWeixin = ua.match(/MicroMessenger/i) == "micromessenger"; //微信
+          return obj;
+        }
+      };
+    </script>
+  </body>
+</html>
